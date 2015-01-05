@@ -1,0 +1,32 @@
+jusqu'au 23/10/2014 : idée de départ : éditeur synchronisé, débuts de bout de code...
+
+30/10/2014 J1 : j'ai réécrit mon début de code pour avoir quelque chose de plus propre, pour gérer la saisie et le rythme du player. Je ne suis qu'a 50% de ma productivité maximale sur cette étape car je devais me former à l'écriture de javascript orienté objet pour arriver à structurer proprement cette version.
+Au final on a bien un une zone de saisie, dont la durée de lecture varie de manière assez appropriée en fonction de la quantité de texte tappé et des autres facteurs pris en compte.
+C'est encore juste un début de prototype très brut, l'ergonomie et les paramètres de vitesse de frappe méritent beaucoup d'ajustement.
+
+
+12/11/2014 après midi + 13/11/2014 matin J1.5 : j'ai passé une demi journée à étuder les systèmes de reconnaissance vocal pour voir s'il est possible de fournir une assistance à la saisie (auto-completion basé sur les mots reconnus, par ex. ce que l'on a avec les claviers virtuels des smartphones mais en utilisant la reconnaissance vocale plutôt que la prédiction).
+Le prédicat est que si cette option est possible, mieux vaut l'amener dès le départ dans le projet car elle peut avoir un impact sur l'ergonomie de l'éditeur et le fonctionnement de la synchro.
+
+En résumé, pour de l'assistance à une saisie manuelle par auto-completion et non pour de la transcription automatique, ce n'est pas totalement de la science fiction, mais les outils manquent un peu de maturité technique pour que cela vaille le coup de les intégrer en début de projet et au coeur du projet
+
+Projets examinés :
+ - google speech API :
+Son accès est beaucoup trop limitatif, on est obligé d'envoyer les données sur le serveur google, et on à le droit à  50 phrases de 10 secondes par jour, et officiellement ne s'utilise qu'avec un microphone, pas sur des fichiers pré-enregistrés. Je ne suis pas allé plus loin devant ces obstacles.
+ - CMU sphinx : http://cmusphinx.sourceforge.net/ + les modèles français du LIUM http://www-lium.univ-lemans.fr/fr/content/transcription
+Le système est présenté comme arrivant à seulement 25% d'erreur par mot dans un contexte expérimental. En pratique, avec mes fichiers tests issue de la WebTV je suis arrivé à quelque chose de l'ordre de 60% d'erreur, ce qui pour de l'assistance à la saisie n'est pas totalement disqualifiant mais "juste limite" compte tenu de l'effort de développement et l'alourdissement du système. De plus, plus on fourni un fichier long, plus le système ralenti de manière non linéaire, il n'arrive pas à faire une segmentation progressive des longs fichiers, ce qui donne un temps de traitement de 20 minutes pour un fichier de 2 minutes et un plantage pour un fichier de plus de 5 minutes.
+
+Peut être que c'est une question de réglage mais dans l'état actuel des choses ce serait des obstacles à l'intégration.
+
+Pour mémoire, voici la procédure pour transformer "fr.mp4" en sa transcription "fr.txt" :
+$ apt-get install pocketsphinx-utils
+récupérer les modèles accoustiques et modèles langages ici (et non sur le site du lium) :
+http://sourceforge.net/projects/cmusphinx/files/Acoustic%20and%20Language%20Models/French%20F2%20Telephone%20Acoustic%20Model/
+http://sourceforge.net/projects/cmusphinx/files/Acoustic%20and%20Language%20Models/French%20Language%20Model/
+$ ffmpeg -i fr.mp4 -acodec pcm_s16le -ac 1 -ar 16000 fr.wav
+$ ffmpeg -t 120 -acodec copy -i fr.wav fr-short.wav
+$ pocketsphinx_continuous -infile fr-short.wav -dict ../data/fr/frenchWords62K.dic -hmm ../data/fr/lium_french_f2 -lm ../data/fr/french3g62K.lm.dmp > fr.txt
+
+
+13/11/2014 après-midi : transformation du bloc de texte unique en une série de lignes de texte. Nécessaire pour ensuite pouvoir gérer les éléments lignes par lignes (et proposer des timecodes...)
+Le plus gros du temps concerne la gestion des évènements pour avoir une ergonomie similaire à une unique texte-area). Pas encore terminé, en particulier a cause des subtilités de la gestion de la position du curseur sur contenteditable (chaque navigateur le formate différement).

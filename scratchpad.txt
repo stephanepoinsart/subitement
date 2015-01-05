@@ -1,0 +1,187 @@
+Pressure :
+ + number of backspace for the last 15 chars
+ + continuous typing for a long time
+
+Typing speed :
+ + average intra-word c/s
+ + long pause time / no fast pause
+
+
+
+---------------------------------
+
+key {
+	var k1, k2;
+	function display();
+	function change();
+}
+key :	pause+rewind
+		resume+forward
+
+
+criterionlist[];
+
+criterion {
+	_constructor();
+	getPressure();
+	resetPressure();
+	display();
+	
+
+
+	// backspace pressure
+		// logarithmic sum of last keypress state
+		
+	// speed pressure
+		// average of c/s speed for the 80% successive character top speed
+		// average time since no pressure
+		// number of c typed since no pressure
+
+	// time pressure
+		// at least 1 low pressure time every 15 seconds
+	
+	// resume pressure
+		// manual resume = 0 pressure
+		// auto resume = 1 pressure
+}
+
+Processing {
+	syllable {
+		timecode
+		probability
+	}
+}
+
+------------------------------------
+matching algo :
+
+
+letter
+
+a bb c dd eee
+
+previoustype=NODETYPE_NONE;
+iterate through each inputnode
+	nodeburned=false;
+	iterate through each char
+		currenttype=c.isseparator();
+		if (currenttype!=previoustype) {
+			output.textContent=currentnode;
+			output=outputnode;
+			if (currenttype==NODETYPE_TEXT)
+				outputnode=create(#text);
+			} else {
+				outputnode=create(span);
+				if (!nodeburned) {
+					ouputnode.id=inputnode.id;
+					...
+					nodeburned=true;
+				} else {
+					outputnode.id=random();
+					
+				}
+			}
+			previoustype=currenttype;
+		} else {
+			outputtext+=c;
+		}
+
+
+base :
+a b c d
+1 2 3 4
+T U V W
+
+/*
+formating :
+ - iterate through node list
+if (current node is #text
+ 	&& current node contains is splitable to words of non-separators)
+build a list of splited words and separators
+text=#text.text();
+delete(#text);
+while (list not empty) {
+	if (next list item is a separator group) {
+		insert #text node with content : the separator group
+	} else { // next list item is a regular word
+		asign new id
+		attribute data-wordtime=...
+		attribute data-wordpressure=...
+		insert new node with content : the word
+	}
+}
+
+
+
+a b c d
+<span id="T">a</span> <span id="U">b</span> <span id="V">c</span> <span id="W">d</span>
+
+*/
+
+formating + expanding :
+ - iterate through node list
+if (current node contains is splitable to words of non-separators)
+build a list of splited words and separators
+if (current node is node) {
+	save node
+delete current
+while (list not empty) {
+	if (next list item is a separator group) {
+		insert #text node with content : the separator group
+	} else { // next list item is a regular word
+		if (saved node)
+			restore values
+		else {
+			assign new id
+			attribute data-wordtime=...
+			attribute data-wordpressure=...
+		}
+		insert new node with content : the word
+	}
+}
+
+compressing :
+ - iterate through node list
+if (current node is content span
+		&& nextSibling is #text node
+		&& nextSibling.nextSibling is content span ) {
+	append nextSibling.text to current node  
+	delete(nextSibling)
+}
+ - iterate through node list
+if (current node is content span
+		&& current node is empty) {
+	remove current node
+}
+
+<span id="T">a</span> <span id="U">b</span><span id="v">c</span> <span id="W">d</span>
+<span id="T">a</span> <span id="U">bc</span> <span id="W">d</span>
+
+
+
+a bc d
+1 2  3
+T U  W
+
+
+expanding :
+if (current node is content span
+	&& current node is splitable to words of printable chars)
+split by word group + separator groups
+first item is kept inside the first node
+while (list not empty) {
+	if (next list item is a separator group) {
+		insert #text node with content : the separator group
+	} else { // next list item is a regular word
+		asign new id
+		attribute data-wordtime=...
+		attribute data-wordpressure=...
+		insert new node with content : the word
+	}
+}
+
+a b c d
+1 2 3 4
+T U V W
+
+TODO: fuse formating and expanding in a single function
